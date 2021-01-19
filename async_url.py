@@ -18,7 +18,7 @@ class Crawl():
     loop = asyncio.get_event_loop()
     SITEMAP = 'https://www.google.com/admob/sitemap.xml'
 
-    def __init__(self, sitemap, format_file="url"):
+    def __init__(self, sitemap, format_file="url", ):
         self.sitemap = sitemap
         self.format_file = format_file
 
@@ -78,8 +78,12 @@ class Crawl():
                     h1 = soup1.find('h1').get_text()
                 except AttributeError:
                     h1 = None
+
                 try:
-                    status = response.status
+                    if 500 <= response.status <= 507:
+                        await asyncio.sleep(50)
+                    elif 200 <= response.status <= 507:
+                        status = response.status
                 except Exception as e:
                     print('Ошибка: %r' % e)
 
@@ -89,11 +93,14 @@ class Crawl():
                     urls = "Ошибка: "+data_urls
 
                 dicts = {'status': status, 'h1': h1, 'url': urls, 'description': description, 'title': title}
+                # dicts = {'status': status, 'url': urls}
                 print(dicts)
 
         except AssertionError:
             e_url = "Failed: "+data_urls
+
             dicts = {'status': None, 'h1': None, 'url': e_url, 'description': None, 'title': None}
+            # dicts = {'status': status, 'url': e_url}
             print(dicts)
 
         self.csv_writer(dicts)
@@ -111,6 +118,10 @@ class Crawl():
                              self.data['url'],
                              self.data['description'],
                              self.data['title']))
+
+            # writer.writerow((self.data['status'],
+            #                  self.data['url'],
+            #                  ))
             f.close()
 
 
