@@ -59,7 +59,6 @@ class Crawl():
 
     async def behavior(self, data_urls, session):
         """Поведение(обработка) полученых из fetch_urls() URL"""
-        global h1, status, urls, description, title
         try:
             async with session.get(data_urls, allow_redirects=False, headers=self.HEADERS) as response:
 
@@ -67,7 +66,6 @@ class Crawl():
                 soup1 = bs4.BeautifulSoup(content, 'html.parser')
                 lxml_xpath = lxml.html.fromstring(content)
 
-                urls = response.url
 
                 try:
                     description = lxml_xpath.xpath('//meta[@name="description"]/@content')[0]
@@ -80,17 +78,23 @@ class Crawl():
                     h1 = soup1.find('h1').get_text()
                 except AttributeError:
                     h1 = None
-
                 try:
                     status = response.status
                 except Exception as e:
                     print('Ошибка: %r' % e)
 
+                try:
+                    urls = response.url
+                except AssertionError:
+                    urls = "Ошибка: "+data_urls
+
                 dicts = {'status': status, 'h1': h1, 'url': urls, 'description': description, 'title': title}
                 print(dicts)
 
-        except Exception as e:
-            print('Ошибка: %r' % e)
+        except AssertionError:
+            e_url = "Failed: "+data_urls
+            dicts = {'status': None, 'h1': None, 'url': e_url, 'description': None, 'title': None}
+            print(dicts)
 
         self.csv_writer(dicts)
         return None
