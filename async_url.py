@@ -57,39 +57,40 @@ class Crawl():
         except Exception as e:
             return e
 
-    # noinspection PyAttributeOutsideInit
     async def behavior(self, data_urls, session):
-        """Поведение(обработка) полученых из data() URL"""
-
-        global urls, status
+        """Поведение(обработка) полученых из fetch_urls() URL"""
+        global h1, status, urls, description, title
         try:
             async with session.get(data_urls, allow_redirects=False, headers=self.HEADERS) as response:
 
-                # content = await response.text()
-                # soup1 = bs4.BeautifulSoup(content, 'html.parser')
-                # lxml_xpath = lxml.html.fromstring(content)
-                # description = lxml_xpath.xpath('//meta[@name="description"]/@content')[0]
-                # title = lxml_xpath.xpath('//title/text()')[0]
-                # h1 = soup1.find('h1').get_text()
+                content = await response.text()
+                soup1 = bs4.BeautifulSoup(content, 'html.parser')
+                lxml_xpath = lxml.html.fromstring(content)
 
-                # text = soup1.get_text(strip=False)
-
-                # check status code
                 urls = response.url
-                status = response.status
 
-                # full check crawl and status code add data dict
-                # dicts = {'status': status, 'h1': h1, 'description': description, 'title': title, 'url': urls}
-                dicts = {'status': status, 'url': urls}
+                try:
+                    description = lxml_xpath.xpath('//meta[@name="description"]/@content')[0]
+                    title = lxml_xpath.xpath('//title/text()')[0]
+                except IndexError:
+                    description = None
+                    title = None
+
+                try:
+                    h1 = soup1.find('h1').get_text()
+                except AttributeError:
+                    h1 = None
+
+                try:
+                    status = response.status
+                except Exception as e:
+                    print('Ошибка: %r' % e)
+
+                dicts = {'status': status, 'h1': h1, 'url': urls, 'description': description, 'title': title}
                 print(dicts)
 
         except Exception as e:
-
-            # dicts = {'status': 'None', 'h1': 'None', 'description': 'None', 'title': 'None', 'url': data_urls,
-            #         }
             print('Ошибка: %r' % e)
-            dicts = {'status': status, 'url': urls}
-            print(dicts)
 
         self.csv_writer(dicts)
         return None
@@ -99,11 +100,13 @@ class Crawl():
         self.data = data
         """Запись полученых данных из behavior(data_urls)"""
         with open(self.FILE + '.csv', 'a') as f:
-            writer = csv.writer(f, delimiter=";", lineterminator="\r")
+            writer = csv.writer(f, delimiter=";", lineterminator="\n")
             # full write data csv crawl and status code and url
-            # writer.writerow((self.data['status'], self.data['h1'], self.data['description'], self.data['title'],
-            #                  self.data['url']))
-            writer.writerow((self.data['status'], self.data['url']))
+            writer.writerow((self.data['status'],
+                             self.data['h1'],
+                             self.data['url'],
+                             self.data['description'],
+                             self.data['title']))
             f.close()
 
 
