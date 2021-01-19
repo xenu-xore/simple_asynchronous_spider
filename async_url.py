@@ -81,7 +81,7 @@ class Crawl():
 
                 try:
                     if 500 <= response.status <= 507:
-                        await asyncio.sleep(50)
+                        await asyncio.sleep(10)
                     elif 200 <= response.status <= 507:
                         status = response.status
                 except Exception as e:
