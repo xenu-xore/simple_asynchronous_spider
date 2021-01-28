@@ -80,9 +80,10 @@ class Crawl():
                     h1 = None
 
                 try:
-                    if 500 <= response.status <= 507:
-                        await asyncio.sleep(10)
-                    elif 200 <= response.status <= 507:
+                    if response.status >= 501:
+                        for i in range(10):
+                            await asyncio.sleep(i)
+                    elif 200 <= response.status < 501:
                         status = response.status
                 except Exception as e:
                     print('Ошибка: %r' % e)
@@ -103,26 +104,26 @@ class Crawl():
             # dicts = {'status': status, 'url': e_url}
             print(dicts)
 
-        self.csv_writer(dicts)
-        return None
+        # self.csv_writer(dicts)
+        # return None
 
     # noinspection PyAttributeOutsideInit
-    def csv_writer(self, data):
-        self.data = data
-        """Запись полученых данных из behavior(data_urls)"""
-        with open(self.FILE + '.csv', 'a') as f:
-            writer = csv.writer(f, delimiter=";", lineterminator="\n")
-            # full write data csv crawl and status code and url
-            writer.writerow((self.data['status'],
-                             self.data['h1'],
-                             self.data['url'],
-                             self.data['description'],
-                             self.data['title']))
-
-            # writer.writerow((self.data['status'],
-            #                  self.data['url'],
-            #                  ))
-            f.close()
+    # def csv_writer(self, data):
+    #     self.data = data
+    #     """Запись полученых данных из behavior(data_urls)"""
+    #     with open(self.FILE + '.csv', 'a') as f:
+    #         writer = csv.writer(f, delimiter=";", lineterminator="\n")
+    #         # full write data csv crawl and status code and url
+    #         writer.writerow((self.data['status'],
+    #                          self.data['h1'],
+    #                          self.data['url'],
+    #                          self.data['description'],
+    #                          self.data['title']))
+    #
+    #         # writer.writerow((self.data['status'],
+    #         #                  self.data['url'],
+    #         #                  ))
+    #         f.close()
 
 
 if __name__ == "__main__":
